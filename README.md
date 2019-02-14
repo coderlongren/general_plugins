@@ -1,0 +1,2 @@
+# general_plugins
+使用redis和zookeeper造的一些常用组件轮子
