@@ -1,7 +1,6 @@
 package com.coderlong.zoopeeper_lock;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,9 +53,20 @@ public class DistributedLock implements Watcher, Lock {
 
         try {
             zk = new ZooKeeper(config, sessionTimeOut, this);
+            Stat stat = zk.exists(root, false);
+            if(stat == null){
+                // 创建根节点
+                zk.create(root, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.PERSISTENT);
+            }
+
 
         } catch (IOException e) {
             LOGGER.error("create DistributedLock Error: {}", e);
+        } catch (InterruptedException e) {
+            LOGGER.error("");
+            e.printStackTrace();
+        } catch (KeeperException e) {
+            e.printStackTrace();
         }
     }
 
@@ -84,7 +94,14 @@ public class DistributedLock implements Watcher, Lock {
         return null;
     }
 
+    /**
+     *
+     * 节点监视器
+     * @param watchedEvent
+     */
     public void process(WatchedEvent watchedEvent) {
-
+        if (latch != null) {
+            latch.countDown();
+        }
     }
 }
